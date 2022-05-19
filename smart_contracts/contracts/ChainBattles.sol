@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 
 contract ChainBattles is ERC721URIStorage {
-
+ 
     using Strings for uint256;
     using Counters for Counters.Counter;
     Counters.Counter private tokenIds;
@@ -39,4 +39,37 @@ contract ChainBattles is ERC721URIStorage {
         return levels.toString();
     }
 
+    function getTokeURI(uint256 tokenId) public view returns(string memory) {
+        bytes memory dataURI = abi.encodePacked(
+            '{',
+                '"name": "Chain Battles #' , tokenId.toString(), '",', 
+                '"description": "Battles on Chain",', 
+                '"image": ', generateCharacter(tokenId), '"',                
+            '}'
+        );
+
+        return string(
+            abi.encodePacked(
+                "data:application/json;base64,", 
+                Base64.encode(dataURI)
+            )
+        );
+    }
+
+    function mint() public {
+        tokenIds.increment();
+        uint256 newItemId = tokenIds.current();
+        _safeMint(msg.sender, newItemId);
+        tokenIdToLevels[newItemId] = 0;
+        _setTokenURI(newItemId, getTokeURI(newItemId));
+    }
+
+    function train(uint256 tokenId) public {
+        require(_exists(tokenId), "Pleaes use an exisiting Token");
+        require(ownerOf(tokenId) == msg.sender, "You must own this token to train it");
+
+        uint256 currentLevel = tokenIdToLevels[tokenId];
+        tokenIdToLevels[tokenId] = currentLevel + 1;
+        _setTokenURI(tokenId, getTokeURI(tokenId));
+    }
 }
