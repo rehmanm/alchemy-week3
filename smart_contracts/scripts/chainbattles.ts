@@ -26,6 +26,27 @@ async function main() {
   await chainBattles.deployed();
 
   console.log("chainBattles deployed to:", chainBattles.address);
+
+  await chainBattles.mint();
+
+  const getNft = await chainBattles.getTokenURI(1);
+
+  console.log(getNft);
+
+  let currentCharacteristics = await chainBattles.getCharacteristics(1);
+  while (currentCharacteristics["life"].toNumber() > 0) {
+    try {
+      await chainBattles.play(1);
+    } catch (error) {
+      console.log("lifes end");
+      await chainBattles.getCharacteristics(1);
+    }
+    currentCharacteristics = await chainBattles.getCharacteristics(1);
+  }
+
+  const getNftAfterTrain = await chainBattles.getTokenURI(1);
+
+  console.log(getNftAfterTrain);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
